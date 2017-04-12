@@ -81,7 +81,6 @@ export class Ng2TemplatePluginClass {
             });
             if (this.autoRequireScss) {
                 let SCSSUrl = HTMLurl.replace('.html', '.scss');
-                // source = source + `require(${SCSSUrl});`;
                 source = source + this.replaceUrls(SCSSUrl);
             }
         }
