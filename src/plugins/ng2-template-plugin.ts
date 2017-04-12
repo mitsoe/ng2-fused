@@ -7,7 +7,7 @@ import * as path from 'path';
  * @class Ng2TemplatePlugin
  */
 export class Ng2TemplatePluginClass {
-    
+
     public get ignoreStyleUrls(): boolean {
         return this.options.ignoreStyleUrls;
     }
@@ -16,6 +16,9 @@ export class Ng2TemplatePluginClass {
         return this.options.ignoreTemplateUrl;
     }
 
+    public get autoRequireScss(): boolean {
+        return this.options.autoRequireScss;
+    }
     public options: Ng2TemplatePluginOptions;
 
     public get templateUrlPattern(): RegExp {
@@ -30,6 +33,7 @@ export class Ng2TemplatePluginClass {
         return this.options.urlStringPattern;
     }
 
+
     constructor(options?: Ng2TemplatePluginOptions) {
         this.options = Object.assign({
             templateUrlPattern: /templateUrl\s*:(\s*['"`](.*?)['"`]\s*([,}]))/gm,
@@ -37,14 +41,14 @@ export class Ng2TemplatePluginClass {
             urlStringPattern: /(['`"])((?:[^\\]\\\1|.)*?)\1/g
         }, options);
     }
-        
+
     /**
      * Implements FuseBox Plugin's onTypescriptTransform 's method.  
      * 
      * @param {any} file 
      * @returns 
      */
-    public onTypescriptTransform(file) {      
+    public onTypescriptTransform(file) {
         file.contents = this.transformSource(file.contents);
     }
 
@@ -70,9 +74,16 @@ export class Ng2TemplatePluginClass {
      */
     public transformSource(source: string): string {
         if (!this.ignoreTemplateUrl) {
+            let HTMLurl = '';
             source = source.replace(this.templateUrlPattern, (match, url) => {
+                HTMLurl = url;
                 return 'template:' + this.replaceUrls(url);
             });
+            if (this.autoRequireScss) {
+                let SCSSUrl = HTMLurl.replace('.html', '.scss');
+                // source = source + `require(${SCSSUrl});`;
+                source = source + this.replaceUrls(SCSSUrl);
+            }
         }
         if (!this.ignoreStyleUrls) {
             source = source.replace(this.styleUrlsPattern, (match, urls) => {
@@ -115,7 +126,14 @@ export interface Ng2TemplatePluginOptions {
     /**
      * The regex pattern to search for the 'templateUrl' property in component metadata.
      * 
-     * @type {RegExp}
+     * @type {boolean}
+     * @memberOf Ng2TemplatePluginOptions
+     */
+    autoRequireScss?: boolean;
+    /**
+     * Whether or not to automatically require scss files based on templateUrl name. Defaults to false.
+     * 
+     * @type {boolean}
      * @memberOf Ng2TemplatePluginOptions
      */
     templateUrlPattern?: RegExp;

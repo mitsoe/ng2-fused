@@ -4,7 +4,7 @@ describe('Ng2TemplatePlugin', () => {
     let plugin: Ng2TemplatePluginClass;
 
     describe('#transformSource', () => {
-        
+
         beforeEach(() => {
             plugin = Ng2TemplatePlugin();
         })
@@ -60,6 +60,11 @@ describe('Ng2TemplatePlugin', () => {
 
         it('should convert templateUrl when only property', () => {
             expect(plugin.transformSource(`@Component({ templateUrl: './template.html' })`)).toContain(`template: require('./template.html')`);
+        });
+
+        it('should put require on next line', () => {
+            plugin.options.autoRequireScss = true;
+            expect(plugin.transformSource(`@Component({ templateUrl: './template.html' })`)).toContain(`require('./template.scss')`);
         });
     });
 });
